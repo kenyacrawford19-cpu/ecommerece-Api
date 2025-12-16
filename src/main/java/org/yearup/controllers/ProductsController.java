@@ -5,8 +5,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import org.yearup.models.Product;
 import org.yearup.data.ProductDao;
+import org.yearup.models.Product;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.List;
 @CrossOrigin
 public class ProductsController
 {
-    private ProductDao productDao;
+    private final ProductDao productDao;
 
     @Autowired
     public ProductsController(ProductDao productDao)
@@ -29,20 +29,26 @@ public class ProductsController
     public List<Product> search(@RequestParam(name="cat", required = false) Integer categoryId,
                                 @RequestParam(name="minPrice", required = false) BigDecimal minPrice,
                                 @RequestParam(name="maxPrice", required = false) BigDecimal maxPrice,
-                                @RequestParam(name="subCategory", required = false) String subCategory
-                                )
+                                @RequestParam(name="subCategory", required = false) String subCategory)
     {
         try
         {
+            if (minPrice != null && maxPrice != null && minPrice.compareTo(maxPrice) > 0)
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "minPrice cannot be greater than maxPrice");
+
             return productDao.search(categoryId, minPrice, maxPrice, subCategory);
         }
-        catch(Exception ex)
+        catch (ResponseStatusException ex)
+        {
+            throw ex;
+        }
+        catch (Exception ex)
         {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
         }
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     @PreAuthorize("permitAll()")
     public Product getById(@PathVariable int id )
     {
@@ -55,13 +61,17 @@ public class ProductsController
 
             return product;
         }
-        catch(Exception ex)
+        catch (ResponseStatusException ex)
+        {
+            throw ex;
+        }
+        catch (Exception ex)
         {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
         }
     }
 
-    @PostMapping()
+    @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public Product addProduct(@RequestBody Product product)
     {
@@ -69,21 +79,37 @@ public class ProductsController
         {
             return productDao.create(product);
         }
-        catch(Exception ex)
+        catch (ResponseStatusException ex)
+        {
+            throw ex;
+        }
+        catch (Exception ex)
         {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
         }
     }
 
-    @PutMapping("{id}")
+    @PutMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public void updateProduct(@PathVariable int id, @RequestBody Product product)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void update(@PathVariable int id, @RequestBody Product product)
     {
         try
         {
-            productDao.create(product);
+            var existing = productDao.getById(id);
+            if(existing == null)
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+
+            // Keep URL id as the source of truth (prevents mismatched IDs)
+            product.setProductId(id);
+
+            productDao.update(id, product);
         }
-        catch(Exception ex)
+        catch (ResponseStatusException ex)
+        {
+            throw ex;
+        }
+        catch (Exception ex)
         {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
         }
@@ -102,7 +128,11 @@ public class ProductsController
 
             productDao.delete(id);
         }
-        catch(Exception ex)
+        catch (ResponseStatusException ex)
+        {
+            throw ex;
+        }
+        catch (Exception ex)
         {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
         }

@@ -1,12 +1,14 @@
 package org.yearup.data.mysql;
 
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.yearup.data.CategoryDao;
 import org.yearup.models.Category;
 
 import javax.sql.DataSource;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.List;
 
 @Component
@@ -18,52 +20,116 @@ public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
     }
 
     @Override
-    public List<Category> getAllCategories()
-    {
-        // get all categories
-        return null;
+    public List<Category> getAllCategories() {
+        return List.of();
     }
 
+    // =========================
+    // GET ALL CATEGORIES
+    // =========================
+    @Override
+    public List<Category> getAll()
+    {
+        String sql = """
+            SELECT category_id, name, description
+            FROM categories
+            ORDER BY category_id
+            """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs));
+    }
+
+    // =========================
+    // GET CATEGORY BY ID
+    // =========================
     @Override
     public Category getById(int categoryId)
     {
-        // get category by id
-        return null;
+        String sql = """
+            SELECT category_id, name, description
+            FROM categories
+            WHERE category_id = ?
+            """;
+
+        try
+        {
+            return jdbcTemplate.queryForObject(
+                    sql,
+                    (rs, rowNum) -> mapRow(rs),
+                    categoryId
+            );
+        }
+        catch (EmptyResultDataAccessException ex)
+        {
+            return null;
+        }
     }
 
+    // =========================
+    // CREATE CATEGORY
+    // =========================
     @Override
     public Category create(Category category)
     {
-        // create a new category
-        return null;
+        String sql = """
+            INSERT INTO categories (name, description)
+            VALUES (?, ?)
+            """;
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(connection ->
+        {
+            PreparedStatement ps =
+                    connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, category.getName());
+            ps.setString(2, category.getDescription());
+            return ps;
+        }, keyHolder);
+
+        int newId = keyHolder.getKey().intValue();
+        return getById(newId);
     }
 
+    // =========================
+    // UPDATE CATEGORY
+    // =========================
     @Override
     public void update(int categoryId, Category category)
     {
-        // update category
+        String sql = """
+            UPDATE categories
+            SET name = ?, description = ?
+            WHERE category_id = ?
+            """;
+
+        jdbcTemplate.update(
+                sql,
+                category.getName(),
+                category.getDescription(),
+                categoryId
+        );
     }
 
+    // =========================
+    // DELETE CATEGORY
+    // =========================
     @Override
     public void delete(int categoryId)
     {
-        // delete category
+        String sql = "DELETE FROM categories WHERE category_id = ?";
+        jdbcTemplate.update(sql, categoryId);
     }
 
+    // =========================
+    // ROW MAPPER
+    // =========================
     private Category mapRow(ResultSet row) throws SQLException
     {
-        int categoryId = row.getInt("category_id");
-        String name = row.getString("name");
-        String description = row.getString("description");
-
-        Category category = new Category()
-        {{
-            setCategoryId(categoryId);
-            setName(name);
-            setDescription(description);
-        }};
-
+        Category category = new Category();
+        category.setCategoryId(row.getInt("category_id"));
+        category.setName(row.getString("name"));
+        category.setDescription(row.getString("description"));
         return category;
     }
-
 }

@@ -3,6 +3,7 @@ package org.yearup.data.mysql;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yearup.data.UserDao;
+import org.yearup.models.Category;
 import org.yearup.models.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -18,6 +19,11 @@ public class MySqlUserDao extends MySqlDaoBase implements UserDao
     public MySqlUserDao(DataSource dataSource)
     {
         super(dataSource);
+    }
+
+    @Override
+    public List<Category> getAllCategories() {
+        return List.of();
     }
 
 
