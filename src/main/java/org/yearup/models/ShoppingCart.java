@@ -7,6 +7,7 @@ import java.util.Map;
 public class ShoppingCart
 {
     private Map<Integer, ShoppingCartItem> items = new HashMap<>();
+    private Integer productId;
 
     public Map<Integer, ShoppingCartItem> getItems()
     {
@@ -23,9 +24,10 @@ public class ShoppingCart
         return items.containsKey(productId);
     }
 
+    // ✅ safest: key is the productId, not derived from product object
     public void add(ShoppingCartItem item)
     {
-        items.put(item.getProductId(), item);
+        items.put(productId, item);
     }
 
     public ShoppingCartItem get(int productId)
@@ -35,12 +37,10 @@ public class ShoppingCart
 
     public BigDecimal getTotal()
     {
-        BigDecimal total = items.values()
-                                .stream()
-                                .map(i -> i.getLineTotal())
-                                .reduce( BigDecimal.ZERO, (lineTotal, subTotal) -> subTotal.add(lineTotal));
-
-        return total;
+        return items.values()
+                .stream()
+                .map(ShoppingCartItem::getLineTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-
 }
+

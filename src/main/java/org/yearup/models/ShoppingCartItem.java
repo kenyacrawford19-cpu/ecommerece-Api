@@ -3,58 +3,49 @@ package org.yearup.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class ShoppingCartItem
 {
-    private Product product = null;
-    private int quantity = 1;
+    @JsonIgnore
+    private int productId;
+
+    private Product product;
+    private int quantity;
     private BigDecimal discountPercent = BigDecimal.ZERO;
 
+    public int getProductId() { return productId; }
+    public void setProductId(int productId) { this.productId = productId; }
 
-    public Product getProduct()
-    {
-        return product;
-    }
-
+    public Product getProduct() { return product; }
     public void setProduct(Product product)
     {
         this.product = product;
+        if (product != null)
+            this.productId = product.getProductId();
     }
 
-    public int getQuantity()
-    {
-        return quantity;
-    }
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
 
-    public void setQuantity(int quantity)
-    {
-        this.quantity = quantity;
-    }
-
-    public BigDecimal getDiscountPercent()
-    {
-        return discountPercent;
-    }
-
+    public BigDecimal getDiscountPercent() { return discountPercent; }
     public void setDiscountPercent(BigDecimal discountPercent)
     {
-        this.discountPercent = discountPercent;
-    }
-
-    @JsonIgnore
-    public int getProductId()
-    {
-        return this.product.getProductId();
+        this.discountPercent = (discountPercent == null) ? BigDecimal.ZERO : discountPercent;
     }
 
     public BigDecimal getLineTotal()
     {
-        BigDecimal basePrice = product.getPrice();
-        BigDecimal quantity = new BigDecimal(this.quantity);
+        if (product == null || product.getPrice() == null) return BigDecimal.ZERO;
 
-        BigDecimal subTotal = basePrice.multiply(quantity);
-        BigDecimal discountAmount = subTotal.multiply(discountPercent);
+        BigDecimal price = product.getPrice();
+        BigDecimal qty = new BigDecimal(quantity);
 
-        return subTotal.subtract(discountAmount);
+        BigDecimal discountMultiplier =
+                BigDecimal.ONE.subtract(discountPercent.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP));
+
+        return price.multiply(qty).multiply(discountMultiplier).setScale(2, RoundingMode.HALF_UP);
     }
 }
+
+
