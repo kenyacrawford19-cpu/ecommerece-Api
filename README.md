@@ -1,4 +1,6 @@
 # Starz Records E-Commerce API
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/9fdb6633-a0ef-459d-8677-6f310a128941" />
+
 
 ## Overview
 
