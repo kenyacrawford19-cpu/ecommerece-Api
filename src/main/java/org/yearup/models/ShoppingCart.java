@@ -27,7 +27,7 @@ public class ShoppingCart
     // ✅ safest: key is the productId, not derived from product object
     public void add(ShoppingCartItem item)
     {
-        items.put(productId, item);
+        items.put(item.getProductId(), item);
     }
 
     public ShoppingCartItem get(int productId)

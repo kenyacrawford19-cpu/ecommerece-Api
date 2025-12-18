@@ -42,7 +42,7 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
                 p.price,
                 p.category_id,
                 p.description,
-                p.sub_category,
+                p.subcategory,
                 p.stock,
                 p.image_url,
                 p.featured
@@ -56,7 +56,7 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
 
         jdbcTemplate.query(sql, (rs) -> {
             ShoppingCartItem item = mapRowToCartItem(rs);
-            cart.add(item);
+          cart.add(item);
         }, userId);
 
         return cart;
@@ -80,6 +80,7 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
                 VALUES (?, ?, 1)
                 """, userId, productId);
         }
+
     }
 
     @Override
@@ -96,7 +97,7 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
         product.setPrice(row.getBigDecimal("price"));
         product.setCategoryId(row.getInt("category_id"));
         product.setDescription(row.getString("description"));
-        product.setSubCategory(row.getString("sub_category"));
+        product.setSubCategory(row.getString("subcategory"));
         product.setStock(row.getInt("stock"));
         product.setImageUrl(row.getString("image_url"));
         product.setFeatured(row.getBoolean("featured"));
