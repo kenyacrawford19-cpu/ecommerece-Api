@@ -4,7 +4,7 @@
 
 ## Overview
 
-EasyShop is a RESTful e-commerce backend API built with **Java Spring Boot** and **MySQL**. It supports product and category management, shopping cart functionality, and order checkout with role-based security.
+Starz Records is a RESTful e-commerce backend API built with **Java Spring Boot** and **MySQL**. It supports product and category management, shopping cart functionality, and order checkout with role-based security.
 
 ---
 
