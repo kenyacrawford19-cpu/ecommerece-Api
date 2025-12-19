@@ -37,10 +37,11 @@ public class ShoppingCartController
     }
 
     @PostMapping("products/{productId}")
-    public void addProduct(@PathVariable int productId, Principal principal)
+    public ShoppingCart addProduct(@PathVariable int productId, Principal principal)
     {
         User user = getCurrentUser(principal);
         shoppingCartDao.addOrIncrement(user.getId(), productId);
+        return getCart(principal);
     }
 
     @DeleteMapping("")
